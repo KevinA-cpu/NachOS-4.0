@@ -176,20 +176,17 @@ void SysPrintNum(int num)
 {
   if (num == 0){
     kernel->synchConsoleOut->PutChar('0');
-    kernel->synchConsoleOut->PutChar('\n');
     return;
   }
   else if (num == INT_MIN) {
     kernel->synchConsoleOut->PutChar('-');
     for (int i = 0; i < 10; i++)
         kernel->synchConsoleOut->PutChar("2147483648"[i]);
-    kernel->synchConsoleOut->PutChar('\n');
     return;
   }
   else if(num == INT_MAX){
     for (int i = 0; i < 10; i++)
         kernel->synchConsoleOut->PutChar("2147483648"[i]);
-    kernel->synchConsoleOut->PutChar('\n');
     return;
   }
   else if (num < 0) {
@@ -204,7 +201,6 @@ void SysPrintNum(int num)
     }
     for (int i = n - 1; i >= 0; i--)
       kernel->synchConsoleOut->PutChar(numBuffer[i] + '0');
-    kernel->synchConsoleOut->PutChar('\n');
     return;
 }
 
@@ -216,7 +212,6 @@ char SysReadChar()
 void SysPrintChar(char ch)
 {
   kernel->synchConsoleOut->PutChar(ch);
-  kernel->synchConsoleOut->PutChar('\n');
 }
 
 int SysRandomNum()
@@ -252,6 +247,5 @@ void SysPrintString(char *buffer)
       kernel->synchConsoleOut->PutChar(buffer[i]);
   }
 }
-
 
 #endif /* ! __USERPROG_KSYSCALL_H__ */

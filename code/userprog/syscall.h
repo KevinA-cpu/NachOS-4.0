@@ -58,8 +58,7 @@
 
 /* Stop Nachos, and print out performance stats */
 void Halt();		
- 
- 
+
 /*
  * Add the two operants and return the result
  */ 
