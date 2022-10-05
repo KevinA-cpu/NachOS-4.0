@@ -35,9 +35,14 @@
 #define SC_ThreadExit   14
 #define SC_ThreadJoin   15
 
-#define SC_Add		42
-#define SC_ReadNum		43
-#define SC_PrintNum		44
+#define SC_Add 42
+#define SC_ReadNum	43
+#define SC_PrintNum	44
+#define SC_PrintChar 45
+#define SC_PrintString 46
+#define SC_RandomNum 47
+#define SC_ReadChar 48
+#define SC_ReadString 49
 
 #ifndef IN_ASM
 
@@ -58,7 +63,6 @@ void Halt();
 /*
  * Add the two operants and return the result
  */ 
-
 int Add(int op1, int op2);
 
 /*
@@ -71,6 +75,30 @@ int ReadNum();
  */ 
 void PrintNum();
 
+/*
+ * Read character using synchConsoleIn
+ */ 
+char ReadChar();
+
+/*
+ * Print character using synchConsoleOut
+ */ 
+void PrintChar(char ch);
+
+/*
+ * Return a random number
+ */ 
+int RandomNum();
+
+/*
+ * Read a user string
+ */ 
+void ReadString(char* buffer ,int length);
+
+/*
+ * Print a user string
+ */ 
+void PrintString(char *buffer);
 
 /* Address space control operations: Exit, Exec, Execv, and Join */
 

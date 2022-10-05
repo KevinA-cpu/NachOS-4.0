@@ -58,6 +58,43 @@ void movePC(){
 	kernel->machine->WriteRegister(NextPCReg, kernel->machine->ReadRegister(PCReg)+4);
 }
 
+char *User2System(int virtAddr, int limit)
+{
+	int i; // index
+	int oneChar;
+	char *kernelBuf = NULL;
+
+	kernelBuf = new char[limit + 1]; // need for terminal string
+	if (kernelBuf == NULL)
+		return kernelBuf;
+
+	for (i = 0; i < limit; i++)
+	{
+		kernel->machine->ReadMem(virtAddr + i, 1, &oneChar);
+		kernelBuf[i] = (char)oneChar;
+
+		if (oneChar == 0)
+			break;
+	}
+	return kernelBuf;
+}
+
+int System2User(int addr, int len, char *buffer)
+{
+	if (len < 0)
+		return -1;
+	if (len == 0)
+		return 0;
+	int i = 0, ch = 0;
+	do
+	{
+		ch = (int)buffer[i];
+		kernel->machine->WriteMem(addr + i, 1, ch);
+		++i;
+	} while (i < len && ch != 0);
+	return i;
+}
+
 void
 ExceptionHandler(ExceptionType which)
 {
@@ -104,21 +141,75 @@ ExceptionHandler(ExceptionType which)
 			{
 			int num = SysReadNum();
 			kernel->machine->WriteRegister(2, num);
-			movePC();
-			return;
+			return movePC();
 			}
+			ASSERTNOTREACHED();
+			break;
 		case SC_PrintNum:
 			{
 			int print = kernel->machine->ReadRegister(4);
 			SysPrintNum(print);
-			movePC();
-			return;
+			return movePC();
 			}
+			ASSERTNOTREACHED();
+			break;
+		case SC_ReadChar:
+			{
+			char rs;
+			rs = SysReadChar();
+			/* Prepare Result */
+			kernel->machine->WriteRegister(2, (int)rs);
+			return movePC();
+			}
+			ASSERTNOTREACHED();
+			break;
+		case SC_PrintChar:
+			{
+			SysPrintChar((char)kernel->machine->ReadRegister(4));
+			return movePC();
+			}
+			ASSERTNOTREACHED();
+			break;
+		case SC_RandomNum:
+			{
+			DEBUG(dbgSys, "Random num \n");
+			int result = SysRandomNum();
+			kernel->machine->WriteRegister(2, (int)result);
+			return movePC();
+			}
+			ASSERTNOTREACHED();
+			break;
+		case SC_ReadString:
+			{
+			int addr;
+			char *buffer;
+			int length;
+
+			addr = kernel->machine->ReadRegister(4);   // get buffer' address
+			length = kernel->machine->ReadRegister(5); // maximum length of input string
+			buffer = User2System(addr, length);		   // copy string from User space to Kernel space
+			SysReadString(buffer, length);		   // system read string
+			System2User(addr, length, buffer);		   // return string to User space
+			delete[] buffer;
+			return movePC();
+			}
+			ASSERTNOTREACHED();
+			break;
+		case SC_PrintString:
+			{
+			int addr = kernel->machine->ReadRegister(4);
+			char *buffer = User2System(addr, MAX_STRING);
+			SysPrintString(buffer);
+			delete[] buffer;
+			return movePC();
+			}
+			ASSERTNOTREACHED();
+			break;
       	case SC_Halt:{
 			DEBUG(dbgSys, "Shutdown, initiated by user program.\n");
 			SysHalt();
-			ASSERTNOTREACHED();
 			}
+			ASSERTNOTREACHED();
 			break;
       	case SC_Add:
 			{
@@ -134,8 +225,7 @@ ExceptionHandler(ExceptionType which)
 			kernel->machine->WriteRegister(2, (int)result);
 			
 			/* Modify return point */
-			movePC();
-			return;
+			return movePC();
 			}
 			ASSERTNOTREACHED();
 			break;

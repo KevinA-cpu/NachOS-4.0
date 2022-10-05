@@ -15,6 +15,9 @@
 #include "synchconsole.h"
 #include <limits.h>
 #include <stdio.h>
+
+#define MAX_STRING 512
+
 /*
 LF - Line Feed is a character indicating moving down one line
 CR - Carriage Return is a character reseting to cursor to the begining of a line of text
@@ -63,7 +66,8 @@ int SysAdd(int op1, int op2)
   return op1 + op2;
 }
 
-int SysReadNum(){
+int SysReadNum()
+{
   //Set all character to 0
   memset(numBuffer, 0, sizeof(numBuffer));
   char c = kernel->synchConsoleIn->GetChar();
@@ -168,7 +172,8 @@ int SysReadNum(){
   return number;
 }
 
-void SysPrintNum(int num) {
+void SysPrintNum(int num) 
+{
   if (num == 0){
     kernel->synchConsoleOut->PutChar('0');
     kernel->synchConsoleOut->PutChar('\n');
@@ -202,4 +207,51 @@ void SysPrintNum(int num) {
     kernel->synchConsoleOut->PutChar('\n');
     return;
 }
+
+char SysReadChar()
+{
+    return kernel->synchConsoleIn->GetChar();
+}
+
+void SysPrintChar(char ch)
+{
+  kernel->synchConsoleOut->PutChar(ch);
+  kernel->synchConsoleOut->PutChar('\n');
+}
+
+int SysRandomNum()
+{
+  RandomInit((unsigned)time(NULL));
+  return RandomNumber();
+}
+
+void SysReadString(char *buffer, int length)
+{
+  int i;
+  char c;
+
+  for (i = 0; i < length; ++i)
+      buffer[i] = 0;
+
+  for (i = 0; i < length;)
+  {
+      do
+      { 
+          c = SysReadChar();
+      } while (c == EOF);
+      if (c == '\001' || c == '\n') // finish input
+          break;
+      buffer[i++] = c;
+  }
+}
+
+void SysPrintString(char *buffer)
+{
+  for (int i = 0; buffer[i] != '\0'; i++)
+  {
+      kernel->synchConsoleOut->PutChar(buffer[i]);
+  }
+}
+
+
 #endif /* ! __USERPROG_KSYSCALL_H__ */
