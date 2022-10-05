@@ -3,7 +3,7 @@
 int main(){
     PrintString("Team members in this NACHOS project include: \n");
     PrintString("20120265 - Bui Tien Dat.\n");
-    PrintString(" - Nguyen Hoang Cao Son.\n");
+    PrintString("18120267 - Nguyen Hoang Cao Son.\n");
     PrintString("20120253 - Ly Bang.\n");
     PrintString("Subject: Operating System.\n");
     PrintString("Class: 20_22.\n");
