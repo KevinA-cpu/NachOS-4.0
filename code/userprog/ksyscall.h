@@ -13,6 +13,7 @@
 
 #include "kernel.h"
 #include "synchconsole.h"
+#include "sysdep.h"
 #include <limits.h>
 #include <stdio.h>
 
@@ -246,6 +247,33 @@ void SysPrintString(char *buffer)
   {
       kernel->synchConsoleOut->PutChar(buffer[i]);
   }
+}
+
+OpenFileId SysOpen(char* fileName) {
+    return -1;
+}
+
+int SysRemove(char *name)
+{
+  //If somehow the char arry can't be initialize
+  if(name == NULL){
+    DEBUG(dbgSys, "Not enough memory for file name.\n");
+		return -1;
+  }
+
+  //check if the file is being open
+  //TODO* unsure if this is correct or not, will have to wait for another team member to write actually implement SysOpen
+  //This is only a placeholder, not the actual code of SysOpen
+  if(SysOpen(name) != -1){
+			DEBUG(dbgSys, "Can't remove file that is being open for read and write.\n");
+			return -1;
+	}
+	else if(kernel->fileSystem->Remove(name) == false){
+			DEBUG(dbgSys, "Can't remove the file, something is wrong.\n");
+			return -1;
+	}
+	DEBUG(dbgSys, "Remove file successfully.\n");
+	return 0;
 }
 
 #endif /* ! __USERPROG_KSYSCALL_H__ */

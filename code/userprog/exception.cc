@@ -229,6 +229,23 @@ ExceptionHandler(ExceptionType which)
 			}
 			ASSERTNOTREACHED();
 			break;
+		case SC_Remove:
+			{
+			int addr= kernel->machine->ReadRegister(4);
+			char* buffer = User2System(addr, MAX_STRING);
+			int result = SysRemove(buffer);
+			kernel->machine->WriteRegister(2, result);
+			return movePC();
+			}
+			ASSERTNOTREACHED();
+			break;
+		case SC_Open:
+			{
+			kernel->machine->WriteRegister(2, SysOpen("placeholder"));
+			return movePC();
+			}
+			ASSERTNOTREACHED();
+			break;
       	default:
 			cerr << "Unexpected system call " << type << "\n";
 			break;
