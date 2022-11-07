@@ -138,49 +138,54 @@ ExceptionHandler(ExceptionType which)
     case SyscallException:
       switch(type) {
 		case SC_ReadNum:
-			{
+		{
 			int num = SysReadNum();
 			kernel->machine->WriteRegister(2, num);
 			return movePC();
-			}
+
 			ASSERTNOTREACHED();
 			break;
+		}
 		case SC_PrintNum:
-			{
+		{
 			int print = kernel->machine->ReadRegister(4);
 			SysPrintNum(print);
 			return movePC();
-			}
+
 			ASSERTNOTREACHED();
 			break;
+		}
 		case SC_ReadChar:
-			{
+		{
 			char rs;
 			rs = SysReadChar();
 			/* Prepare Result */
 			kernel->machine->WriteRegister(2, (int)rs);
 			return movePC();
-			}
+
 			ASSERTNOTREACHED();
 			break;
+		}
 		case SC_PrintChar:
-			{
+		{
 			SysPrintChar((char)kernel->machine->ReadRegister(4));
 			return movePC();
-			}
+
 			ASSERTNOTREACHED();
 			break;
+		}
 		case SC_RandomNum:
-			{
+		{
 			DEBUG(dbgSys, "Random num \n");
 			int result = SysRandomNum();
 			kernel->machine->WriteRegister(2, (int)result);
 			return movePC();
-			}
+
 			ASSERTNOTREACHED();
 			break;
+		}
 		case SC_ReadString:
-			{
+		{
 			int addr;
 			char *buffer;
 			int length;
@@ -192,27 +197,31 @@ ExceptionHandler(ExceptionType which)
 			System2User(addr, length, buffer);		   // return string to User space
 			delete[] buffer;
 			return movePC();
-			}
+
 			ASSERTNOTREACHED();
 			break;
+		}
 		case SC_PrintString:
-			{
+		{
 			int addr = kernel->machine->ReadRegister(4);
 			char *buffer = User2System(addr, MAX_STRING);
 			SysPrintString(buffer);
 			delete[] buffer;
 			return movePC();
-			}
+
 			ASSERTNOTREACHED();
 			break;
-      	case SC_Halt:{
+		}
+      	case SC_Halt:
+		{
 			DEBUG(dbgSys, "Shutdown, initiated by user program.\n");
 			SysHalt();
-			}
+
 			ASSERTNOTREACHED();
 			break;
+		}
       	case SC_Add:
-			{
+		{
 			DEBUG(dbgSys, "Add " << kernel->machine->ReadRegister(4) << " + " << kernel->machine->ReadRegister(5) << "\n");
 			
 			/* Process SysAdd Systemcall*/
@@ -226,26 +235,90 @@ ExceptionHandler(ExceptionType which)
 			
 			/* Modify return point */
 			return movePC();
-			}
+
 			ASSERTNOTREACHED();
 			break;
+		}
 		case SC_Remove:
-			{
+		{
 			int addr= kernel->machine->ReadRegister(4);
 			char* buffer = User2System(addr, MAX_STRING);
 			int result = SysRemove(buffer);
 			kernel->machine->WriteRegister(2, result);
 			return movePC();
-			}
+
 			ASSERTNOTREACHED();
 			break;
-		case SC_Open:
-			{
-			kernel->machine->WriteRegister(2, SysOpen("placeholder"));
+		}
+		case SC_Create:
+		{
+			DEBUG(dbgSys, "Creating file " << (char *)kernel->machine->ReadRegister(4));
+			int addr = kernel->machine->ReadRegister(4);  // Get the address of the buffer of user space
+			char *sysBuff = User2System(addr, MAX_STRING); // copy buffer from user space to kernel space
+			int result = SysCreateFile(sysBuff);
+			kernel->machine->WriteRegister(2, result);
+			if (result == 0)
+				printf("Creation successful\n");
+			else
+				printf("Creation failed\n");
+			DEBUG(dbgSys, "Creation completed");
+
 			return movePC();
-			}
+
 			ASSERTNOTREACHED();
+
 			break;
+		}
+		case SC_Open:
+		{
+			int addr = kernel->machine->ReadRegister(4);
+			char *name = User2System(addr, 256);
+
+			int result = SysOpenFile(name);
+			DEBUG(dbgSys, "Passed SysOpen()\n");
+			DEBUG(dbgSys, "result:");
+			DEBUG(dbgSys, result);
+			if (result > 0)
+			{
+				DEBUG(dbgSys, "Creation completed. ID = " << result);
+			}
+			else
+			{
+				DEBUG(dbgSys, "Creation failed");
+			}
+			kernel->machine->WriteRegister(2, result);
+
+			return movePC();
+
+			ASSERTNOTREACHED();
+
+			break;
+		}
+		case SC_Close:
+		{
+			//
+			DEBUG(dbgSys, "Closing file " << (char *)kernel->machine->ReadRegister(4));
+
+			int fileid = kernel->machine->ReadRegister(4);
+
+			int result = SysCloseFile(fileid);
+
+			if (result == 0)
+			{
+				DEBUG(dbgSys, "Close completed.");
+			}
+			else
+			{
+				DEBUG(dbgSys, "Close failed");
+			};
+			kernel->machine->WriteRegister(2, result);
+
+			return movePC();
+
+			ASSERTNOTREACHED();
+
+			break;
+		}
       	default:
 			cerr << "Unexpected system call " << type << "\n";
 			break;

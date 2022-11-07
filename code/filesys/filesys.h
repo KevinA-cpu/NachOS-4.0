@@ -36,13 +36,46 @@
 #include "copyright.h"
 #include "sysdep.h"
 #include "openfile.h"
+#include <stdio.h>
+
+#define MAX_FILES 100
+
+#define _ConsoleInput 0
+#define _ConsoleOutput 1
 
 #ifdef FILESYS_STUB 		// Temporarily implement file system calls as 
 				// calls to UNIX, until the real file system
 				// implementation is available
 class FileSystem {
   public:
-    FileSystem() {}
+  	//Level 2 pointer(OpenFile**) points to array of level 1 pointer(OpenFile*) 
+	OpenFile** p;
+	char fileNames[MAX_FILES][256];
+
+    FileSystem() {
+		p = new OpenFile*[MAX_FILES];
+		
+		int i = 0;
+		while (i++ < MAX_FILES) {
+			p[i] = NULL;
+		}
+		this->Create("stdin");
+		this->Create("stdout");
+		p[_ConsoleInput] = this->Open("stdin");
+		p[_ConsoleOutput] = this->Open("stdout");
+		strcpy(fileNames[_ConsoleInput], "stdin");
+		strcpy(fileNames[_ConsoleOutput], "stdout");
+	}
+
+	~FileSystem()
+	{
+		for (int i = 0; i < MAX_FILES; i++)
+			if (p[i])
+			{
+				delete p[i];
+			}
+		delete[]p;
+	}
 
     bool Create(char *name) {
 	int fileDescriptor = OpenForWrite(name);
@@ -60,6 +93,14 @@ class FileSystem {
       }
 
     bool Remove(char *name) { return Unlink(name) == 0; }
+
+	int findFreeSlot()
+	{
+		for (int i = 2; i < MAX_FILES; i++)
+			if (p[i] == NULL)
+				return i;
+		return -1;
+	}
 
 };
 

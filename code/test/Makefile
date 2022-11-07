@@ -112,7 +112,7 @@ ifeq ($(hosttype),unknown)
 PROGRAMS = unknownhost
 else
 # change this if you create a new test program!
-PROGRAMS = add halt shell matmult sort segments test ascii help bbsort delete
+PROGRAMS = add halt shell matmult sort segments test ascii help bbsort delete createfile
 endif
 
 all: $(PROGRAMS)
@@ -180,6 +180,12 @@ bbsort.o: bbsort.c
 bbsort: bbsort.o start.o
 	$(LD) $(LDFLAGS) start.o bbsort.o -o bbsort.coff
 	$(COFF2NOFF) bbsort.coff bbsort
+
+createfile.o: createfile.c
+	$(CC) $(CFLAGS) -c createfile.c
+createfile: createfile.o start.o
+	$(LD) $(LDFLAGS) start.o createfile.o -o createfile.coff
+	$(COFF2NOFF) createfile.coff createfile
 
 delete.o: delete.c
 	$(CC) $(CFLAGS) -c delete.c

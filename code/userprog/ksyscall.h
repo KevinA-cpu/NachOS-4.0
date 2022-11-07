@@ -13,7 +13,6 @@
 
 #include "kernel.h"
 #include "synchconsole.h"
-#include "sysdep.h"
 #include <limits.h>
 #include <stdio.h>
 
@@ -249,7 +248,56 @@ void SysPrintString(char *buffer)
   }
 }
 
-OpenFileId SysOpen(char* fileName) {
+int SysCreateFile(char *name)
+{
+    if (strlen(name) == 0)
+        return -1;
+    if (!name)
+        return -1;
+    #ifdef FILESYS_STUB 
+    bool code = kernel->fileSystem->Create(name); // Create file
+    #else
+    bool code = kernel->fileSystem->Create(name,0); // Also create file but keep the compiler happy
+    #endif
+    return code ? 0 : -1;                            // Return status code
+}
+
+OpenFileId SysOpenFile(char *name)
+{
+    if (strcmp(name, "stdin") == 0)
+    {
+        return _ConsoleInput;
+    }
+    if (strcmp(name, "stdout") == 0)
+        return _ConsoleOutput;
+
+    int freeSlot = kernel->fileSystem->findFreeSlot();
+    if (freeSlot != -1) // Chi xu li khi con slot trong
+    {
+            kernel->fileSystem->p[freeSlot] = kernel->fileSystem->Open(name);
+            if (kernel->fileSystem->p[freeSlot] != NULL) // Mo file thanh cong
+            {   
+                strcpy(kernel->fileSystem->fileNames[freeSlot], name);
+                delete[] name;
+                return freeSlot;
+            }
+    }
+    delete[] name;
+    return -1;
+}
+
+int SysCloseFile(OpenFileId id)
+{
+    if (id >= 0 && id <= MAX_FILES)
+    {
+        if (kernel->fileSystem->p[id])
+        {
+            delete kernel->fileSystem->p[id];
+            kernel->fileSystem->p[id] = NULL;
+            strcpy(kernel->fileSystem->fileNames[id], "");
+            return 0;
+        }
+    }
     return -1;
 }
 
@@ -261,17 +309,20 @@ int SysRemove(char *name)
 		return -1;
   }
 
-  //check if the file is being open
-  //TODO* unsure if this is correct or not, will have to wait for another team member to write actually implement SysOpen
-  //This is only a placeholder, not the actual code of SysOpen
-  if(SysOpen(name) != -1){
-			DEBUG(dbgSys, "Can't remove file that is being open for read and write.\n");
+  //Check if the file is opened or not
+  for(int i = 2; i < MAX_FILES;i++){
+    if(strcmp(name, kernel->fileSystem->fileNames[i]) == 0){
+      DEBUG(dbgSys, "Can't remove a file that is being opened.\n");
 			return -1;
-	}
-	else if(kernel->fileSystem->Remove(name) == false){
+    } 
+  }
+
+  //Unexpected error like the file don't exists
+	if(kernel->fileSystem->Remove(name) == false){
 			DEBUG(dbgSys, "Can't remove the file, something is wrong.\n");
 			return -1;
 	}
+
 	DEBUG(dbgSys, "Remove file successfully.\n");
 	return 0;
 }
