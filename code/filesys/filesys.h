@@ -36,7 +36,6 @@
 #include "copyright.h"
 #include "sysdep.h"
 #include "openfile.h"
-#include <stdio.h>
 
 #define MAX_FILES 100
 

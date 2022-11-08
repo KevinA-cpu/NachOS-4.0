@@ -1,5 +1,10 @@
 #include"syscall.h"
+#define MAX_INPUT 256
+
 int main(){
-   PrintNum(Remove("a.c"));
+   char filename[MAX_INPUT];
+   PrintString("Input filename: ");
+   ReadString(filename, MAX_INPUT);
+   PrintNum(Remove(filename));
    Halt();
 }
