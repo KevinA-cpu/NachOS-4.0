@@ -319,7 +319,7 @@ ExceptionHandler(ExceptionType which)
 
 			break;
 		}
-		case SC_Read
+		case SC_Read:
 		{
 			int virtAddr = machine->ReadRegister(4);
 			int size = machine->ReadRegister(5);
@@ -367,9 +367,11 @@ ExceptionHandler(ExceptionType which)
 			}
 			delete buf;
 			return movePC();
-			ASSERTNOTREACHED
 		}
-		case SC_Write
+			ASSERTNOTREACHED();
+			break;
+		
+		case SC_Write:
 		{
 			int virtAddr = machine->ReadRegister(4);
 			int size = machine->ReadRegister(5);
@@ -421,6 +423,8 @@ ExceptionHandler(ExceptionType which)
 				delete buf;
 				return movePC();
 			}
+			ASSERTNOTREACHED();
+			break;
 		}
       	default:
 			cerr << "Unexpected system call " << type << "\n";
