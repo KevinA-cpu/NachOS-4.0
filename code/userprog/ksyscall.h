@@ -301,6 +301,34 @@ int SysCloseFile(OpenFileId id)
     return -1;
 }
 
+int SysRead(char* buffer, int size, OpenFileId id){
+  //id == 0 means file name is "stdin" which means reading from console.
+  if(id == 0){
+    SysReadString(buffer, size);
+    return 0;
+  }
+  
+  return kernel->fileSystem->Read(buffer, size, id);
+}
+
+int SysWrite(char* buffer, int size, OpenFileId id){
+  //id == 1 means file name is "stdout" which means writting from console.
+  if(id == 1){
+    SysPrintString(buffer);
+    return 0;
+  }
+
+  return kernel->fileSystem->Write(buffer, size, id);
+}
+
+int SysSeek(int seekPos, int id){
+  if(id <= 1){
+      DEBUG(dbgSys, "seek position in console is impossible");
+      return -1;
+  }
+  return kernel->fileSystem->Seek(seekPos, id);
+}
+
 int SysRemove(char *name)
 {
   //If somehow the char arry can't be initialize

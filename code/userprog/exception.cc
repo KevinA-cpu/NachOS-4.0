@@ -321,111 +321,52 @@ ExceptionHandler(ExceptionType which)
 		}
 		case SC_Read:
 		{
-			int virtAddr = machine->ReadRegister(4);
-			int size = machine->ReadRegister(5);
-			int id = machine->ReadRegister(6);
-			int OldPos;
-			int NewPos;
-			char *buf;
-			if (id < 0 || id > 14)
-			{
-				printf("\nerro open.");
-				machine->WriteRegister(2, -1);
-				return movePC();
-			}
-			if (fileSystem->openf[id] == NULL)
-			{
-				printf("\nnot found.");
-				machine->WriteRegister(2, -1);
-				return movePC();
-			}
-			if (fileSystem->openf[id]->type == 3)
-			{
-				printf("\ncan't read file stdout.");
-				machine->WriteRegister(2, -1);
-				return movePC();
-			}
-			OldPos = fileSystem->openf[id]->GetCurrentPos();
-			buf = User2System(virtAddr, size);
-			if (fileSystem->openf[id]->type == 2)
-			{
-				int size = gSynchConsole->Read(buf, size); 
-				System2User(virtAddr, size, buf);
-				machine->WriteRegister(2, size);
-				delete buf;
-				return movePC();
-			}
-			if ((fileSystem->openf[id]->Read(buf, size)) > 0)
-			{
-				NewPos = fileSystem->openf[id]->GetCurrentPos();
-				System2User(virtAddr, NewPos - OldPos, buf); 
-				machine->WriteRegister(2, NewPos - OldPos);
-			}
-			else
-			{
-				machine->WriteRegister(2, -2);
-			}
-			delete buf;
+			int addr = kernel->machine->ReadRegister(4);
+			int size = kernel->machine->ReadRegister(5);
+			int id = kernel->machine->ReadRegister(6);
+			char* buffer = User2System(addr, size);	
+			int result = SysRead(buffer, size, id);
+
+			kernel->machine->WriteRegister(2, result);
+			System2User(addr, size, buffer);
+
+			delete[] buffer;
 			return movePC();
-		}
+
 			ASSERTNOTREACHED();
 			break;
+		}
 		
 		case SC_Write:
 		{
-			int virtAddr = machine->ReadRegister(4);
-			int size = machine->ReadRegister(5);
-			int id = machine->ReadRegister(6);
-			int OldPos;
-			int NewPos;
-			char *buf;            
-			if (id < 0 || id > 14)
-			{
-				printf("\nerro.");
-				machine->WriteRegister(2, -1);
-				return movePC();
-			}
-			if (fileSystem->openf[id] == NULL)
-			{
-				printf("\nnot found.");
-				machine->WriteRegister(2, -1);
-				return movePC();
-			}
-			if (fileSystem->openf[id]->type == 1 || fileSystem->openf[id]->type == 2)
-			{
-				printf("\nfile only read.");
-				machine->WriteRegister(2, -1);
-				return movePC();
-			}
-			OldPos = fileSystem->openf[id]->GetCurrentPos();
-			buf = User2System(virtAddr, size); 
-			if (fileSystem->openf[id]->type == 0)
-			{
-				if ((fileSystem->openf[id]->Write(buf, size)) > 0)
-				{
-					NewPos = fileSystem->openf[id]->GetCurrentPos();
-					machine->WriteRegister(2, NewPos - OldPos);
-					delete buf;
-					return movePC();
-				}
-			}
-			if (fileSystem->openf[id]->type == 3)
-			{
-				int i = 0;
-				while (buf[i] != 0 && buf[i] != '\n')
-				{
-					gSynchConsole->Write(buf + i, 1);
-					i++;
-				}
-				buf[i] = '\n';
-				gSynchConsole->Write(buf + i, 1);
-				machine->WriteRegister(2, i - 1);
-				delete buf;
-				return movePC();
-			}
+			int addr= kernel->machine->ReadRegister(4);
+			int size = kernel->machine->ReadRegister(5);
+			int id = kernel->machine->ReadRegister(6);
+			char* buffer = User2System(addr, size);	
+			int result = SysWrite(buffer, size, id);
+
+			kernel->machine->WriteRegister(2, result);
+			System2User(addr, size, buffer);
+
+			delete[] buffer;
+			return movePC();
+
 			ASSERTNOTREACHED();
 			break;
 		}
+		case SC_Seek:
+		{
+			int seekPos = kernel->machine->ReadRegister(4);
+    		int id = kernel->machine->ReadRegister(5);
+			int result = SysSeek(seekPos, id);
+			
+    		kernel->machine->WriteRegister(2, result);
+
+			return movePC();
+
+			ASSERTNOTREACHED();
+			break;
+		}							
       	default:
 			cerr << "Unexpected system call " << type << "\n";
 			break;

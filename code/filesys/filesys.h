@@ -76,6 +76,54 @@ class FileSystem {
 		delete[]p;
 	}
 
+	int findFreeSlot()
+	{
+		for (int i = 2; i < MAX_FILES; i++)
+			if (p[i] == NULL)
+				return i;
+		return -1;
+	} 
+
+	int Read(char* buffer, int size, int id){
+		if(id < 0 || id > MAX_FILES) 
+			return -1;
+		if(p[id] == NULL ) 
+			return -1;
+
+		int resultSize = p[id]->Read(buffer, size);
+
+		//we are reading less byte than the user ask us to read, so we need a different return value here.
+		if(resultSize != size) 
+			return -2;
+		return 0;
+	}
+
+	int Seek(int seekPos, int id){
+		if (id <= 1 || id > MAX_FILES)
+			return -1;
+		if (p[id] == NULL)
+			return -1;
+		if(seekPos < -1 || seekPos > p[id]->Length())
+			return -1;
+
+		//if seekPos == -1 means move to end of file
+		if(seekPos == -1)
+			seekPos = p[id]->Length();
+		
+		return p[id]->Seek(seekPos);
+	}
+
+	int Write(char* buffer, int size, int id){
+		if(id < 0 || id > MAX_FILES) 
+			return -1;
+		if(p[id] == NULL ) 
+			return -1;
+		
+		p[id]->Write(buffer, size);
+		return 0;
+	}
+
+
     bool Create(char *name) {
 	int fileDescriptor = OpenForWrite(name);
 
@@ -89,18 +137,9 @@ class FileSystem {
 
 	  if (fileDescriptor == -1) return NULL;
 	  return new OpenFile(fileDescriptor);
-      }
-
+    }
+	 	
     bool Remove(char *name) { return Unlink(name) == 0; }
-
-	int findFreeSlot()
-	{
-		for (int i = 2; i < MAX_FILES; i++)
-			if (p[i] == NULL)
-				return i;
-		return -1;
-	}
-
 };
 
 #else // FILESYS

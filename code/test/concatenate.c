@@ -13,7 +13,7 @@ int main()
     idOriginal = Open(fileNameOriginal);
 
     if (idOriginal == -1){
-        PrintString("File doesn't exists, can't perform copy");
+        PrintString("File doesn't exists, can't perform concatenate");
         Halt();
     }
 
@@ -27,6 +27,7 @@ int main()
     }
 
     Read(fileContent, MAX_INPUT, idOriginal);
+    Seek(-1, idCopy);
     Write(fileContent, MAX_INPUT, idCopy);
 
     Close(idOriginal);
