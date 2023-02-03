@@ -72,7 +72,7 @@ int ReadNum();
 /*
  * Print number using synchConsoleOut
  */ 
-void PrintNum();
+void PrintNum(int num);
 
 /*
  * Read character using synchConsoleIn

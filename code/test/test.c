@@ -3,6 +3,6 @@
 int main(){
     char s[MAX_SIZE];
     ReadString(s, MAX_SIZE);
-    PrintString("HEllo world\n");
+    PrintString(s);
     Halt();
 }
